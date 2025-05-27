@@ -4,13 +4,15 @@ const logger = require('./utils/logger');
 const db = require('./database/db');
 
 const PORT = process.env.PORT;
+console.log("🟡 PORT FROM ENV:", PORT); // 🔍 Debug-вывод перед запуском сервера
+
 // Test database connection on startup
 async function startServer() {
     try {
         // Test database connection
         await db.testConnection();
         logger.info('Database connection established successfully');
-        
+
         // Start the server
         app.listen(PORT, () => {
             logger.info(`🚀 SimpFlow Backend is running on port ${PORT}`);
@@ -39,3 +41,4 @@ process.on('SIGINT', async () => {
 });
 
 startServer();
+//
