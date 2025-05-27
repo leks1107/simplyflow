@@ -172,9 +172,16 @@ export function RouteWizard() {
             <SelectField
               label="Source Type"
               value={formData.source.type}
-              onChange={(value) => updateFormData({ 
-                source: { type: value as any, config: {} } 
-              })}
+              onChange={(e) => {
+                const value = e.target.value;
+                let newConfig: any = {};
+                if (value === 'webhook') {
+                  newConfig = { path: '', method: 'POST' };
+                } else if (value === 'schedule') {
+                  newConfig = { cron: '0 9 * * *' };
+                }
+                updateFormData({ source: { type: value as any, config: newConfig } });
+              }}
               options={SOURCE_TYPES}
               required
             />
@@ -224,7 +231,8 @@ export function RouteWizard() {
             <SelectField
               label="Target Type"
               value={formData.target.type}
-              onChange={(value) => {
+              onChange={(e) => {
+                const value = e.target.value;
                 let newConfig: any = { url: '', method: 'POST', headers: {} };
                 if (value === 'slack' || value === 'discord') {
                   newConfig = { url: '' };
@@ -254,13 +262,23 @@ export function RouteWizard() {
             {formData.target.type === 'http' && (
               <>
                 <SelectField
-                  label="HTTP Method"
+                  label="Method"
                   value={formData.target.config.method || 'POST'}
-                  onChange={(value) => updateTargetConfig({ method: value })}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    updateFormData({
+                      target: {
+                        ...formData.target,
+                        config: { ...formData.target.config, method: value }
+                      }
+                    });
+                  }}
                   options={[
+                    { value: 'GET', label: 'GET' },
                     { value: 'POST', label: 'POST' },
                     { value: 'PUT', label: 'PUT' },
-                    { value: 'PATCH', label: 'PATCH' },
+                    { value: 'DELETE', label: 'DELETE' },
+                    { value: 'PATCH', label: 'PATCH' }
                   ]}
                 />
                 <div>
