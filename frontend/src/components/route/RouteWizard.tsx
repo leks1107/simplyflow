@@ -92,7 +92,7 @@ export function RouteWizard() {
       case 0: // Basic Info
         return formData.name.trim().length > 0
       case 1: // Source
-        return formData.source.type && Object.keys(formData.source.config).length > 0
+        return !!formData.source.type
       case 2: // Target
         return formData.target.type && formData.target.config.url?.trim().length > 0
       case 3: // Filters
