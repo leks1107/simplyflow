@@ -1,5 +1,8 @@
 const logger = require('../utils/logger');
 
+// Переносим Map на уровень модуля вместо использования this в статическом методе
+const rateLimitRequests = new Map();
+
 /**
  * Error handling middleware
  * Centralized error handling for the Express application
@@ -66,9 +69,10 @@ class ErrorHandler {
             success: false,
             error: 'Endpoint not found',
             availableEndpoints: [
-                'GET /health',
-                'GET /webhook/health',
-                'POST /webhook'
+                'GET /api/health',
+                'POST /api/routes',
+                'GET /api/routes',
+                'POST /api/trigger/:routeId'
             ],
             timestamp: new Date().toISOString()
         });
@@ -109,21 +113,17 @@ class ErrorHandler {
      * @param {Function} next - Express next function
      */
     static basicRateLimit(req, res, next) {
-        // Simple in-memory rate limiting (not suitable for production clusters)
-        if (!this.requests) {
-            this.requests = new Map();
-        }
-
+        // Используем переменную уровня модуля вместо this.requests
         const clientIp = req.ip;
         const now = Date.now();
         const windowMs = 60000; // 1 minute
         const maxRequests = 60; // max 60 requests per minute
 
-        if (!this.requests.has(clientIp)) {
-            this.requests.set(clientIp, []);
+        if (!rateLimitRequests.has(clientIp)) {
+            rateLimitRequests.set(clientIp, []);
         }
 
-        const clientRequests = this.requests.get(clientIp);
+        const clientRequests = rateLimitRequests.get(clientIp);
         
         // Remove old requests outside the window
         const validRequests = clientRequests.filter(time => now - time < windowMs);
@@ -140,10 +140,25 @@ class ErrorHandler {
 
         // Add current request
         validRequests.push(now);
-        this.requests.set(clientIp, validRequests);
+        rateLimitRequests.set(clientIp, validRequests);
 
         next();
     }
 }
+
+// Очистка старых записей каждые 5 минут
+setInterval(() => {
+    const now = Date.now();
+    const windowMs = 60000;
+    
+    for (const [ip, requests] of rateLimitRequests.entries()) {
+        const validRequests = requests.filter(time => now - time < windowMs);
+        if (validRequests.length === 0) {
+            rateLimitRequests.delete(ip);
+        } else {
+            rateLimitRequests.set(ip, validRequests);
+        }
+    }
+}, 300000); // 5 minutes
 
 module.exports = ErrorHandler;

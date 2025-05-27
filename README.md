@@ -1,29 +1,72 @@
-# Typeform to Google Sheets Integrator
+# SimpFlow Backend
 
-A Node.js application with Express that integrates Typeform with Google Sheets via webhooks. The application receives data from Typeform forms, validates them according to specific rules, and adds them to Google Sheets.
+A powerful Node.js backend infrastructure for SimpFlow, a no-code platform that processes webhooks from various form providers (Typeform, Tally, Paperform), applies user-defined filtering logic, checks for duplicates, and sends data to target services (Google Sheets, Notion, Email Digest).
 
-## 🎯 Core Logic
+## 🚀 Recent Backend Improvements (May 2025)
 
-1. **Webhook reception**: The application accepts POST requests from Typeform at `/webhook`
-2. **Data validation**: Checks for presence of email, city and interest in the request
-3. **Duplicate check**: If email already exists in the sheet — skips the record
-4. **City validation**: Only accepts records with city "New York"
-5. **Add to sheet**: Upon successful validation adds row: Email, Timestamp (UTC), Interest
+**4 Major Reliability & Stability Improvements Implemented:**
+
+### ✅ 1. Route Validation during Creation
+- **Feature**: Comprehensive validation of route configurations during POST /routes
+- **Benefits**: Prevents misconfigured routes, validates target-specific credentials
+- **Implementation**: `src/services/routeService.js` - `validateTargetConfiguration()`, `validateFilters()`
+
+### ✅ 2. Rate Limiting for Webhook Calls  
+- **Feature**: Max 5 requests/second per route with 429 responses
+- **Benefits**: Prevents server overload, protects against spam/abuse
+- **Implementation**: `src/controllers/webhookController.js` - In-memory rate limiting cache
+
+### ✅ 3. Required Fields Support
+- **Feature**: Skip processing if mandatory fields are missing from webhook data
+- **Benefits**: Ensures data quality, prevents incomplete records
+- **Implementation**: `src/controllers/webhookController.js` - `checkRequiredFields()`
+
+### ✅ 4. Route Status Support (Active/Inactive)
+- **Feature**: Enable/disable routes without deletion, proper logging
+- **Benefits**: Fine-grained control, maintenance mode support
+- **Implementation**: Database schema + webhook controller status checking
+
+**Status**: ✅ Code Complete | 🔄 Pending Database Migration & Testing
+**Next Steps**: Run migration → Start server → Execute test suite
+
+## 🎯 Core Features
+
+- **Multi-Source Webhook Processing**: Supports Typeform, Tally, and Paperform
+- **Flexible Filtering System**: 12+ filter operators (equals, contains, regex, etc.)
+- **Multiple Target Services**: Google Sheets, Notion, and Email Digest
+- **Duplicate Detection**: Configurable duplicate checking across multiple fields
+- **Route Management**: REST API for creating and managing webhook routes
+- **Comprehensive Logging**: Full webhook request logging and statistics
+- **PostgreSQL Database**: Stores routes, configurations, and logs
+- **Ready for Render**: Optimized for free Render hosting
+
+## 🏗️ Architecture
+
+```
+Webhook Request → Route Lookup → Data Extraction → Filtering → Duplicate Check → Target Services
+     ↓               ↓              ↓               ↓             ↓              ↓
+Form Provider → Route Config → validateUtils → filterUtils → Database → Google Sheets
+(Typeform,      (Database)    (Multi-source   (12 operators) (PostgreSQL)    Notion
+ Tally,                        support)                                       Email
+ Paperform)
+```
 
 ## 📋 Requirements
 
 - Node.js (version 14 or higher)
-- npm (Node Package Manager)
-- Google Cloud account with access to Google Sheets API
-- Typeform account with configured form
+- PostgreSQL database (or Supabase)
+- At least one target service configured:
+  - Google Sheets API credentials
+  - Notion integration token
+  - SMTP email credentials
 
-## 🚀 Installation and Setup
+## 🚀 Quick Start
 
-### 1. Clone repository
+### 1. Installation
 
 ```bash
 git clone <repository-url>
-cd typeform-sheets-integrator
+cd simpflow
 ```
 
 ### 2. Install dependencies
