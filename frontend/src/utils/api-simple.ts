@@ -5,93 +5,139 @@ import axios from 'axios';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
-const apiClient = axios.create({
+// Create axios instance with default config
+const api = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 10000, // 10 seconds
 });
 
+// Request interceptor for logging
+api.interceptors.request.use(
+  (config) => {
+    console.log(`🔄 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error('🔥 API Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => {
+    console.log(`✅ API Response: ${response.status} ${response.config.url}`);
+    return response;
+  },
+  (error) => {
+    console.error('🔥 API Response Error:', error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
+
+// API Types
 export interface Route {
   id: string;
-  user_id: string;
   name: string;
   description?: string;
-  source: 'typeform' | 'tally' | 'paperform';
-  target: 'sheets' | 'notion' | 'digest';
+  source: string;
+  target: string;
   webhook_url: string;
-  is_active: boolean;
-  status: 'active' | 'inactive';
   enabled: boolean;
+  status: 'active' | 'inactive';
   created_at: string;
   updated_at: string;
-  filters?: Filter[];
   config: {
     filters: Filter[];
-    credentials: Record<string, any>;
-    duplicate_check_field?: string;
     required_fields: string[];
+    duplicate_check_field?: string;
   };
 }
 
 export interface Filter {
   field: string;
-  op: string;
-  value?: any;
+  operator: 'equals' | 'not_equals' | 'contains' | 'not_contains' | 'starts_with' | 'ends_with' | 'greater_than' | 'less_than' | 'is_empty' | 'is_not_empty';
+  value?: string;
 }
 
 export interface RouteLog {
   id: string;
   route_id: string;
-  raw_request: any;
-  processed_data: any;
-  status: 'success' | 'error' | 'filtered' | 'duplicate' | 'rate_limited' | 'skipped';
-  error_message?: string;
-  processing_time_ms: number;
   timestamp: string;
+  status: 'success' | 'error' | 'filtered' | 'duplicate' | 'rate_limited';
+  processing_time_ms: number;
+  request: any;
+  response?: any;
+  error?: string;
+  error_message?: string;
+  raw_request?: any;
+  processed_data?: any;
 }
 
 export interface CreateRoutePayload {
   name: string;
-  source: string;
-  target: string;
-  filters?: Filter[];
-  credentials: Record<string, any>;
-  duplicateCheckField?: string;
-  requiredFields?: string[];
+  description?: string;
+  source: {
+    type: string;
+    config: any;
+  };
+  target: {
+    type: string;
+    config: any;
+  };
+  filters: Filter[];
+  enabled: boolean;
 }
 
-export const getRoutes = async (): Promise<Route[]> => {
+// API Functions
+export async function getRoutes(): Promise<Route[]> {
   try {
-    const response = await apiClient.get('/api/routes');
-    return response.data?.data || [];
+    const response = await api.get('/api/routes');
+    return response.data.routes || [];
   } catch (error) {
-    console.error('Error fetching routes:', error);
-    return [];
+    console.error('Failed to fetch routes:', error);
+    throw new Error('Failed to fetch routes');
   }
-};
+}
 
-export const createRoute = async (routeData: CreateRoutePayload): Promise<Route> => {
-  const response = await apiClient.post('/api/routes', routeData);
-  return response.data?.data;
-};
-
-export const deleteRoute = async (routeId: string): Promise<void> => {
-  await apiClient.delete(`/api/routes/${routeId}`);
-};
-
-export const getRouteLogs = async (routeId: string): Promise<RouteLog[]> => {
+export async function createRoute(data: CreateRoutePayload): Promise<Route> {
   try {
-    const response = await apiClient.get(`/api/routes/${routeId}/logs`);
-    return response.data?.data || [];
-  } catch (error) {
-    console.error('Error fetching route logs:', error);
-    return [];
+    const response = await api.post('/api/routes', data);
+    return response.data.route;
+  } catch (error: any) {
+    console.error('Failed to create route:', error);
+    throw new Error(error.response?.data?.error || 'Failed to create route');
   }
-};
+}
 
-export const testWebhook = async (routeId: string, testData?: any): Promise<any> => {
-  const response = await apiClient.post(`/api/trigger/${routeId}`, { data: testData });
-  return response.data;
-};
+export async function deleteRoute(routeId: string): Promise<void> {
+  try {
+    await api.delete(`/api/routes/${routeId}`);
+  } catch (error: any) {
+    console.error('Failed to delete route:', error);
+    throw new Error(error.response?.data?.error || 'Failed to delete route');
+  }
+}
+
+export async function getRouteLogs(routeId: string): Promise<RouteLog[]> {
+  try {
+    const response = await api.get(`/api/routes/${routeId}/logs`);
+    return response.data.logs || [];
+  } catch (error) {
+    console.error('Failed to fetch route logs:', error);
+    throw new Error('Failed to fetch route logs');
+  }
+}
+
+export async function testWebhook(routeId: string, payload: any): Promise<any> {
+  try {
+    const response = await api.post(`/api/trigger/${routeId}`, payload);
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to test webhook:', error);
+    throw new Error(error.response?.data?.error || 'Failed to test webhook');
+  }
+}
