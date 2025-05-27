@@ -227,12 +227,11 @@ export default function RouteDetailPage() {
                 <div className="space-y-2">
                   {route.config.filters.length > 0 ? (
                     <ul className="space-y-2">
-                      {route.config.filters.map((filter, index) => (
-                        <li key={index} className="flex items-center space-x-2 text-sm">
+                      {route.config.filters.map((filter, index) => (                        <li key={index} className="flex items-center space-x-2 text-sm">
                           <code className="px-2 py-1 bg-gray-100 rounded text-gray-700">
                             {filter.field}
                           </code>
-                          <span className="text-gray-500">{filter.operator}</span> {/* Исправлено с filter.op на filter.operator */}
+                          <span className="text-gray-500">{filter.operator}</span> {/* Fixed from filter.op to filter.operator */}
                           <code className="px-2 py-1 bg-gray-100 rounded text-gray-700">
                             {filter.value}
                           </code>

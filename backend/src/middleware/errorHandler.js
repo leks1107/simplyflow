@@ -1,6 +1,6 @@
 const logger = require('../utils/logger');
 
-// Переносим Map на уровень модуля вместо использования this в статическом методе
+// Move Map to module level instead of using this in static method
 const rateLimitRequests = new Map();
 
 /**
@@ -111,9 +111,8 @@ class ErrorHandler {
      * @param {Object} req - Express request object
      * @param {Object} res - Express response object
      * @param {Function} next - Express next function
-     */
-    static basicRateLimit(req, res, next) {
-        // Используем переменную уровня модуля вместо this.requests
+     */    static basicRateLimit(req, res, next) {
+        // Use module-level variable instead of this.requests
         const clientIp = req.ip;
         const now = Date.now();
         const windowMs = 60000; // 1 minute
@@ -146,7 +145,7 @@ class ErrorHandler {
     }
 }
 
-// Очистка старых записей каждые 5 минут
+// Clean up old entries every 5 minutes
 setInterval(() => {
     const now = Date.now();
     const windowMs = 60000;

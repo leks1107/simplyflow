@@ -3,7 +3,7 @@ const app = require('./app');
 const logger = require('./utils/logger');
 const db = require('./database/db');
 
-// 🔥 Удалили || 10000 — только то, что задаёт Render
+// 🔥 Removed || 10000 — only use what Render provides
 const PORT = process.env.PORT;
 
 if (!PORT) {
@@ -15,7 +15,7 @@ async function startServer() {
     await db.testConnection();
     logger.info('Database connection established successfully');
 
-    // ✅ Обязательно слушаем внешний интерфейс
+    // ✅ Must listen on external interface
     app.listen(PORT, '0.0.0.0', () => {
       logger.info(`🚀 SimpFlow Backend is running on port ${PORT}`);
       logger.info(`📋 Health check: http://localhost:${PORT}/api/health`);
