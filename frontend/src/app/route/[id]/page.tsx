@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Route, RouteLog, getRoutes, getRouteLogs, deleteRoute } from '@/utils/api'
+import { Route, RouteLog, getRoutes, getRouteLogs, deleteRoute } from '@/utils/api-simple'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
-import { RouteStats } from '@/components/route/RouteStats'
-import { WebhookPreview } from '@/components/route/WebhookPreview'
+import RouteStats from '@/components/route/RouteStats'
+import WebhookPreview from '@/components/route/WebhookPreview'
 import { formatDate, getSourceIcon, getTargetIcon } from '@/utils/helpers'
 
 export default function RouteDetailPage() {
@@ -122,25 +122,24 @@ export default function RouteDetailPage() {
               </svg>
             </Link>
             <h1 className="text-3xl font-bold text-gray-900 truncate">{route.name}</h1>
-            <Badge variant={route.enabled ? 'success' : 'secondary'}>
+            <Badge variant={route.enabled ? 'success' : 'default'}>
               {route.enabled ? 'Active' : 'Inactive'}
             </Badge>
           </div>
           {route.description && (
             <p className="mt-2 text-lg text-gray-600">{route.description}</p>
-          )}
-          <div className="mt-4 flex items-center space-x-6 text-sm text-gray-500">
+          )}          <div className="mt-4 flex items-center space-x-6 text-sm text-gray-500">
             <div className="flex items-center space-x-2">
-              {getSourceIcon(route.source.type)}
-              <span className="capitalize">{route.source.type}</span>
+              {getSourceIcon(route.source)}
+              <span className="capitalize">{route.source}</span>
             </div>
             <span>→</span>
             <div className="flex items-center space-x-2">
-              {getTargetIcon(route.target.type)}
-              <span className="capitalize">{route.target.type}</span>
+              {getTargetIcon(route.target)}
+              <span className="capitalize">{route.target}</span>
             </div>
             <span>•</span>
-            <span>Created {formatDate(route.createdAt)}</span>
+            <span>Created {formatDate(route.created_at)}</span>
           </div>
         </div>
 
@@ -176,7 +175,7 @@ export default function RouteDetailPage() {
       {/* Tab Content */}
       {activeTab === 'overview' && (
         <div className="space-y-8">
-          <RouteStats routeId={route.id} />
+          <RouteStats logs={logs} />
           
           {/* Configuration */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -184,13 +183,12 @@ export default function RouteDetailPage() {
               <CardHeader>
                 <CardTitle>Source Configuration</CardTitle>
               </CardHeader>
-              <CardContent>
-                <dl className="space-y-3">
+              <CardContent>                <dl className="space-y-3">
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Type</dt>
-                    <dd className="text-sm text-gray-900 capitalize">{route.source.type}</dd>
+                    <dd className="text-sm text-gray-900 capitalize">{route.source}</dd>
                   </div>
-                  {Object.entries(route.source.config || {}).map(([key, value]) => (
+                  {Object.entries(route.config.credentials || {}).map(([key, value]) => (
                     <div key={key}>
                       <dt className="text-sm font-medium text-gray-500 capitalize">
                         {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
@@ -208,13 +206,12 @@ export default function RouteDetailPage() {
               <CardHeader>
                 <CardTitle>Target Configuration</CardTitle>
               </CardHeader>
-              <CardContent>
-                <dl className="space-y-3">
+              <CardContent>                <dl className="space-y-3">
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Type</dt>
-                    <dd className="text-sm text-gray-900 capitalize">{route.target.type}</dd>
+                    <dd className="text-sm text-gray-900 capitalize">{route.target}</dd>
                   </div>
-                  {Object.entries(route.target.config || {}).map(([key, value]) => (
+                  {Object.entries(route.config.credentials || {}).map(([key, value]) => (
                     <div key={key}>
                       <dt className="text-sm font-medium text-gray-500 capitalize">
                         {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
@@ -227,22 +224,20 @@ export default function RouteDetailPage() {
                 </dl>
               </CardContent>
             </Card>
-          </div>
-
-          {/* Filters */}
-          {route.filters && route.filters.length > 0 && (
+          </div>          {/* Filters */}
+          {route.config.filters && route.config.filters.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Active Filters</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {route.filters.map((filter, index) => (
+                  {route.config.filters.map((filter, index) => (
                     <div key={index} className="flex items-center space-x-2 text-sm">
                       <code className="px-2 py-1 bg-gray-100 rounded text-gray-700">
                         {filter.field}
                       </code>
-                      <span className="text-gray-500">{filter.operator}</span>
+                      <span className="text-gray-500">{filter.op}</span>
                       <code className="px-2 py-1 bg-gray-100 rounded text-gray-700">
                         {filter.value}
                       </code>
@@ -280,21 +275,19 @@ export default function RouteDetailPage() {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-center space-x-3">
-                        <Badge variant={log.status === 'success' ? 'success' : 'danger'}>
+                        <Badge variant={log.status === 'success' ? 'success' : 'error'}>
                           {log.status}
-                        </Badge>
-                        <span className="text-sm text-gray-500">
+                        </Badge>                        <span className="text-sm text-gray-500">
                           {formatDate(log.timestamp)}
                         </span>
                         <span className="text-sm text-gray-500">
-                          {log.processingTime}ms
+                          {log.processing_time_ms}ms
                         </span>
                       </div>
-                    </div>
-                    
-                    {log.error && (
+                    </div>                    
+                    {log.error_message && (
                       <div className="mt-3 p-3 bg-red-50 rounded-md">
-                        <p className="text-sm text-red-700">{log.error}</p>
+                        <p className="text-sm text-red-700">{log.error_message}</p>
                       </div>
                     )}
                     
@@ -302,14 +295,14 @@ export default function RouteDetailPage() {
                       <div>
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Request</h4>
                         <pre className="text-xs bg-gray-50 p-3 rounded-md overflow-x-auto">
-                          {JSON.stringify(log.request, null, 2)}
+                          {JSON.stringify(log.raw_request, null, 2)}
                         </pre>
                       </div>
                       
                       <div>
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Response</h4>
                         <pre className="text-xs bg-gray-50 p-3 rounded-md overflow-x-auto">
-                          {JSON.stringify(log.response, null, 2)}
+                          {JSON.stringify(log.processed_data, null, 2)}
                         </pre>
                       </div>
                     </div>
@@ -319,10 +312,12 @@ export default function RouteDetailPage() {
             </div>
           )}
         </div>
-      )}
-
-      {activeTab === 'webhook' && (
-        <WebhookPreview route={route} />
+      )}      {activeTab === 'webhook' && (
+        <WebhookPreview 
+          webhookUrl={route.webhook_url} 
+          routeId={route.id} 
+          source={route.source} 
+        />
       )}
     </div>
   )

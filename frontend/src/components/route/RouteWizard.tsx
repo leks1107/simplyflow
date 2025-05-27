@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CreateRoutePayload, createRoute } from '@/utils/api'
+import { CreateRoutePayload, createRoute, Filter } from '@/utils/api-simple'
 import { Button } from '@/components/ui/Button'
 import { InputField } from '@/components/ui/InputField'
 import { SelectField } from '@/components/ui/SelectField'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
-import { FiltersEditor } from '@/components/route/FiltersEditor'
+import FiltersEditor from '@/components/route/FiltersEditor'
 import { SOURCE_TYPES, TARGET_TYPES } from '@/utils/helpers'
 import { cn } from '@/utils/helpers'
 
@@ -19,12 +19,23 @@ const STEPS = [
   { id: 'review', title: 'Review & Create', description: 'Review your configuration' },
 ]
 
-interface RouteFormData extends Omit<CreateRoutePayload, 'filters'> {
+interface RouteFormData {
+  name: string;
+  description?: string;
+  source: {
+    type: string;
+    config: any;
+  };
+  target: {
+    type: string;
+    config: any;
+  };
   filters: Array<{
-    field: string
-    operator: string
-    value: string
-  }>
+    field: string;
+    operator: string;
+    value: string;
+  }>;
+  enabled: boolean;
 }
 
 export function RouteWizard() {
@@ -96,19 +107,28 @@ export function RouteWizard() {
         return false
     }
   }
-
   const handleSubmit = async () => {
     try {
       setLoading(true)
       
-      // Convert filters to API format
+      // Convert form data to API format
       const payload: CreateRoutePayload = {
-        ...formData,
+        name: formData.name,
+        source: JSON.stringify({
+          type: formData.source.type,
+          config: formData.source.config
+        }),
+        target: JSON.stringify({
+          type: formData.target.type,
+          config: formData.target.config
+        }),
         filters: formData.filters.map(f => ({
           field: f.field,
-          operator: f.operator as any,
+          op: f.operator,
           value: f.value
-        }))
+        })),        credentials: {}, // Add default empty credentials
+        duplicateCheckField: undefined,
+        requiredFields: undefined
       }
 
       const route = await createRoute(payload)
@@ -282,10 +302,11 @@ export function RouteWizard() {
               <p className="text-sm text-gray-600 mb-6">
                 Add filters to process only specific webhook events. Leave empty to process all events.
               </p>
-            </div>
-            <FiltersEditor
-              filters={formData.filters}
-              onChange={(filters) => updateFormData({ filters })}
+            </div>            <FiltersEditor
+              filters={formData.filters.map(f => ({ field: f.field, op: f.operator, value: f.value }))}
+              onChange={(filters) => updateFormData({ 
+                filters: filters.map(f => ({ field: f.field, operator: f.op, value: f.value }))
+              })}
             />
           </div>
         )
@@ -457,12 +478,11 @@ export function RouteWizard() {
               Cancel
             </Button>
             
-            {currentStep === STEPS.length - 1 ? (
-              <Button
+            {currentStep === STEPS.length - 1 ? (              <Button
                 variant="primary"
                 onClick={handleSubmit}
                 disabled={!canProceed() || loading}
-                loading={loading}
+                isLoading={loading}
               >
                 Create Route
               </Button>

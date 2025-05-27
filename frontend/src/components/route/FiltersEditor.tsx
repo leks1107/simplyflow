@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/Button';
 import { InputField } from '@/components/ui/InputField';
 import { SelectField } from '@/components/ui/SelectField';
-import { Filter } from '@/utils/api';
+import { Filter } from '@/utils/api-simple';
 import { FILTER_OPERATORS } from '@/utils/helpers';
 
 interface FilterRowProps {

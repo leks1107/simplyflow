@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { RouteLog } from '@/utils/api';
+import { RouteLog } from '@/utils/api-simple';
 import { formatDate, getStatusColor } from '@/utils/helpers';
 
 interface RouteStatsProps {

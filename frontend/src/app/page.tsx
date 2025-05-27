@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Route } from '@/utils/api'
-import { getRoutes } from '@/utils/api'
-import { RouteCard } from '@/components/route/RouteCard'
+import { Route, getRoutes } from '../utils/api-simple'
+import RouteCard from '@/components/route/RouteCard'
 import { Button } from '@/components/ui/Button'
 
-export default function DashboardPage() {
-  const [routes, setRoutes] = useState<Route[]>([])
+export default function DashboardPage() {  const [routes, setRoutes] = useState<Route[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -173,7 +171,7 @@ export default function DashboardPage() {
             <RouteCard
               key={route.id}
               route={route}
-              onDeleted={() => handleRouteDeleted(route.id)}
+              onDelete={() => handleRouteDeleted(route.id)}
             />
           ))}
         </div>
