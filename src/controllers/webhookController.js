@@ -23,7 +23,7 @@ class WebhookController {
             const validation = ValidationService.validateWebhookData(req.body);
             
             if (!validation.valid) {
-                logger.warning(`⚠️ Пропущено: ${validation.reason}`);
+                logger.warning(`⚠️ Skipped: ${validation.reason}`);
                 return res.status(400).json({
                     success: false,
                     message: validation.reason,
@@ -36,7 +36,7 @@ class WebhookController {
             // Check if email already exists in the sheet
             const emailExists = await googleSheetsService.checkEmailExists(email);
             if (emailExists) {
-                logger.warning(`⚠️ Пропущено: дубликат email "${email}"`);
+                logger.warning(`⚠️ Skipped: duplicate email "${email}"`);
                 return res.status(409).json({
                     success: false,
                     message: 'Email already exists in the sheet',
@@ -51,7 +51,7 @@ class WebhookController {
             await googleSheetsService.addRow(email, timestamp, interest);
             
             const processingTime = Date.now() - startTime;
-            logger.success(`✅ Добавлено: ${email} | ${city} | ${interest} (${processingTime}ms)`);
+            logger.success(`✅ Added: ${email} | ${city} | ${interest} (${processingTime}ms)`);
             
             return res.status(201).json({
                 success: true,

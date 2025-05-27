@@ -1,60 +1,60 @@
 # Typeform to Google Sheets Integrator
 
-Node.js приложение с Express, которое интегрирует Typeform с Google Sheets через webhooks. Приложение получает данные из форм Typeform, проверяет их по определённым правилам и добавляет в Google Sheets.
+A Node.js application with Express that integrates Typeform with Google Sheets via webhooks. The application receives data from Typeform forms, validates them according to specific rules, and adds them to Google Sheets.
 
-## 🎯 Основная логика
+## 🎯 Core Logic
 
-1. **Прием webhook**: Приложение принимает POST-запросы от Typeform на `/webhook`
-2. **Валидация данных**: Проверяет наличие email, city и interest в запросе
-3. **Проверка дубликатов**: Если email уже есть в таблице — пропускает запись
-4. **Валидация города**: Принимает только записи с городом "New York"
-5. **Добавление в таблицу**: При успешной валидации добавляет строку: Email, Timestamp (UTC), Interest
+1. **Webhook reception**: The application accepts POST requests from Typeform at `/webhook`
+2. **Data validation**: Checks for presence of email, city and interest in the request
+3. **Duplicate check**: If email already exists in the sheet — skips the record
+4. **City validation**: Only accepts records with city "New York"
+5. **Add to sheet**: Upon successful validation adds row: Email, Timestamp (UTC), Interest
 
-## 📋 Требования
+## 📋 Requirements
 
-- Node.js (версия 14 или выше)
+- Node.js (version 14 or higher)
 - npm (Node Package Manager)
-- Google Cloud аккаунт с доступом к Google Sheets API
-- Typeform аккаунт с настроенной формой
+- Google Cloud account with access to Google Sheets API
+- Typeform account with configured form
 
-## 🚀 Установка и настройка
+## 🚀 Installation and Setup
 
-### 1. Клонирование репозитория
+### 1. Clone repository
 
 ```bash
 git clone <repository-url>
 cd typeform-sheets-integrator
 ```
 
-### 2. Установка зависимостей
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Настройка Google Sheets API
+### 3. Google Sheets API Setup
 
-1. Перейдите в [Google Cloud Console](https://console.cloud.google.com/)
-2. Создайте новый проект или выберите существующий
-3. Включите Google Sheets API
-4. Создайте сервисный аккаунт:
-   - Перейдите в "IAM & Admin" → "Service Accounts"
-   - Нажмите "Create Service Account"
-   - Заполните данные и создайте аккаунт
-   - Создайте JSON ключ для сервисного аккаунта
-5. Предоставьте доступ сервисному аккаунту к вашей Google Sheets таблице:
-   - Откройте таблицу в Google Sheets
-   - Нажмите "Share" и добавьте email сервисного аккаунта с правами "Editor"
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Enable Google Sheets API
+4. Create a service account:
+   - Go to "IAM & Admin" → "Service Accounts"
+   - Click "Create Service Account"
+   - Fill in the data and create the account
+   - Create a JSON key for the service account
+5. Grant access to the service account for your Google Sheets spreadsheet:
+   - Open the spreadsheet in Google Sheets
+   - Click "Share" and add the service account email with "Editor" permissions
 
-### 4. Настройка переменных окружения
+### 4. Environment variables setup
 
-Создайте файл `.env` на основе `.env.example`:
+Create a `.env` file based on `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-Заполните переменные в `.env`:
+Fill in the variables in `.env`:
 
 ```env
 # Google Sheets Configuration
@@ -70,28 +70,28 @@ NODE_ENV=production
 SHEET_NAME=Sheet1
 ```
 
-**Важно**: 
-- `SPREADSHEET_ID` можно найти в URL вашей Google Sheets таблицы
-- `GOOGLE_PRIVATE_KEY` должен быть в кавычках и содержать `\n` для переносов строк
+**Important**: 
+- `SPREADSHEET_ID` can be found in the URL of your Google Sheets spreadsheet
+- `GOOGLE_PRIVATE_KEY` must be in quotes and contain `\n` for line breaks
 
-### 5. Запуск приложения
+### 5. Run the application
 
 ```bash
 # Production
 npm start
 
-# Development (с автоперезагрузкой)
+# Development (with auto-reload)
 npm run dev
 ```
 
-Сервер запустится на порту 3000 (или на порту из переменной PORT).
+The server will start on port 3000 (or the port from the PORT variable).
 
 ## 🔗 API Endpoints
 
 ### POST /webhook
-Основной endpoint для получения webhooks от Typeform.
+Main endpoint for receiving webhooks from Typeform.
 
-**Ожидаемая структура данных от Typeform:**
+**Expected data structure from Typeform:**
 ```json
 {
   "form_response": {
@@ -113,95 +113,95 @@ npm run dev
 }
 ```
 
-**Возможные ответы:**
-- `201` - Данные успешно добавлены
-- `400` - Ошибка валидации данных
-- `409` - Email уже существует в таблице
-- `500` - Внутренняя ошибка сервера
+**Possible responses:**
+- `201` - Data successfully added
+- `400` - Data validation error
+- `409` - Email already exists in the sheet
+- `500` - Internal server error
 
 ### GET /health
-Проверка состояния сервера.
+Server health check.
 
 ### GET /webhook/health
-Проверка состояния webhook сервиса и подключения к Google Sheets.
+Webhook service health check and Google Sheets connection.
 
-## 🔧 Настройка Typeform
+## 🔧 Typeform Setup
 
-1. Откройте вашу форму в Typeform
-2. Перейдите в "Connect" → "Webhooks"
-3. Добавьте новый webhook с URL: `https://your-domain.com/webhook`
-4. Убедитесь, что ваша форма содержит поля:
-   - Email (тип: Email)
-   - City/Город (тип: Short text или Multiple choice)
-   - Interest/Интерес (тип: Short text или Multiple choice)
+1. Open your form in Typeform
+2. Go to "Connect" → "Webhooks"
+3. Add a new webhook with URL: `https://your-domain.com/webhook`
+4. Make sure your form contains fields:
+   - Email (type: Email)
+   - City (type: Short text or Multiple choice)
+   - Interest (type: Short text or Multiple choice)
 
-## 📊 Структура Google Sheets
+## 📊 Google Sheets Structure
 
-Приложение ожидает следующую структуру таблицы:
+The application expects the following table structure:
 
 | A (Email) | B (Timestamp) | C (Interest) |
 |-----------|---------------|--------------|
 | user@example.com | 2025-05-27T10:30:00.000Z | Web Development |
 
-## 🐛 Логирование
+## 🐛 Logging
 
-Приложение выводит подробные логи в консоль:
+The application outputs detailed logs to the console:
 
-- `✅ Добавлено` - запись успешно добавлена
-- `⚠️ Пропущено: дубликат` - email уже существует
-- `⚠️ Пропущено: город не подходит` - город не "New York"
-- `❌ Error` - ошибки выполнения
+- `✅ Added` - record successfully added
+- `⚠️ Skipped: duplicate` - email already exists
+- `⚠️ Skipped: city doesn't match` - city is not "New York"
+- `❌ Error` - execution errors
 
-## 🚢 Деплой
+## 🚢 Deployment
 
 ### Railway
 
-1. Подключите репозиторий к Railway
-2. Добавьте переменные окружения в настройках проекта
-3. Railway автоматически развернет приложение
+1. Connect repository to Railway
+2. Add environment variables in project settings
+3. Railway will automatically deploy the application
 
 ### Render
 
-1. Создайте новый Web Service на Render
-2. Подключите репозиторий
-3. Установите команду запуска: `npm start`
-4. Добавьте переменные окружения
+1. Create a new Web Service on Render
+2. Connect repository
+3. Set startup command: `npm start`
+4. Add environment variables
 
-### Настройка переменных для продакшена:
+### Production environment variables setup:
 - `SPREADSHEET_ID`
 - `GOOGLE_CLIENT_EMAIL`
 - `GOOGLE_PRIVATE_KEY`
 - `NODE_ENV=production`
-- `PORT` (обычно устанавливается автоматически)
+- `PORT` (usually set automatically)
 
-## 📁 Структура проекта
+## 📁 Project Structure
 
 ```
 typeform-sheets-integrator/
 ├── src/
-│   ├── app.js                 # Основной файл приложения
+│   ├── app.js                 # Main application file
 │   ├── controllers/
-│   │   └── webhookController.js # Контроллер для обработки webhooks
+│   │   └── webhookController.js # Controller for handling webhooks
 │   ├── services/
-│   │   ├── googleSheetsService.js # Сервис для работы с Google Sheets
-│   │   └── validationService.js   # Сервис валидации данных
+│   │   ├── googleSheetsService.js # Service for working with Google Sheets
+│   │   └── validationService.js   # Data validation service
 │   └── utils/
-│       └── logger.js          # Утилиты для логирования
+│       └── logger.js          # Logging utilities
 ├── package.json
 ├── .env.example
 ├── .gitignore
 └── README.md
 ```
 
-## 🔍 Отладка
+## 🔍 Debugging
 
-Для включения debug-логов установите:
+To enable debug logs set:
 ```env
 NODE_ENV=development
 ```
 
-Это добавит дополнительную информацию о структуре входящих данных и процессе валидации.
+This will add additional information about incoming data structure and validation process.
 
-## 📝 Лицензия
+## 📝 License
 
-MIT License. См. файл LICENSE для подробностей.
+MIT License. See LICENSE file for details.

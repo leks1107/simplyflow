@@ -3,7 +3,7 @@
 ## Endpoints
 
 ### GET /health
-Проверка состояния сервера.
+Server health check.
 
 **Response:**
 ```json
@@ -16,7 +16,7 @@
 ```
 
 ### GET /webhook/health
-Проверка состояния webhook сервиса и подключения к Google Sheets.
+Webhook service health check and Google Sheets connection.
 
 **Response (Success):**
 ```json
@@ -41,7 +41,7 @@
 ```
 
 ### POST /webhook
-Основной endpoint для получения webhooks от Typeform.
+Main endpoint for receiving webhooks from Typeform.
 
 **Request Body (Typeform Format):**
 ```json
@@ -149,21 +149,21 @@
 ## Validation Rules
 
 1. **Required Fields:**
-   - `email` - должен быть валидным email адресом
-   - `city` - должен быть непустой строкой
-   - `interest` - должен быть непустой строкой
+   - `email` - must be a valid email address
+   - `city` - must be a non-empty string
+   - `interest` - must be a non-empty string
 
 2. **City Validation:**
-   - Принимаются только записи с городом "New York" (регистр не важен)
+   - Only accepts records with city "New York" (case insensitive)
 
 3. **Duplicate Check:**
-   - Email проверяется на уникальность в первой колонке Google Sheets
-   - Сравнение без учета регистра
+   - Email is checked for uniqueness in the first column of Google Sheets
+   - Comparison is case insensitive
 
 ## Rate Limiting
 
-- Максимум 60 запросов в минуту с одного IP адреса
-- При превышении лимита возвращается статус 429
+- Maximum 60 requests per minute from one IP address
+- When limit is exceeded, status 429 is returned
 
 **Response (Rate Limit - 429):**
 ```json
@@ -177,7 +177,7 @@
 
 ## Error Handling
 
-Все ошибки возвращаются в едином формате:
+All errors are returned in a unified format:
 
 ```json
 {
@@ -187,22 +187,22 @@
 }
 ```
 
-В development режиме могут включаться дополнительные поля для отладки:
-- `stack` - stack trace ошибки
-- `details` - дополнительная информация об ошибке
+In development mode, additional fields may be included for debugging:
+- `stack` - error stack trace
+- `details` - additional error information
 
 ## Google Sheets Integration
 
 ### Sheet Structure
-Данные добавляются в таблицу в следующем формате:
+Data is added to the spreadsheet in the following format:
 
 | Column A (Email) | Column B (Timestamp) | Column C (Interest) |
 |------------------|---------------------|---------------------|
 | user@example.com | 2025-05-27T08:30:12.456Z | Web Development |
 
 ### Permissions
-Сервисный аккаунт должен иметь права "Editor" на Google Sheets документ.
+Service account must have "Editor" permissions on the Google Sheets document.
 
 ### API Quotas
-- Google Sheets API имеет лимиты: 100 запросов в 100 секунд на пользователя
-- В случае превышения лимитов сервис автоматически попытается повторить запрос
+- Google Sheets API has limits: 100 requests per 100 seconds per user
+- In case of quota exceeding, the service will automatically retry the request

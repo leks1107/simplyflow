@@ -32,16 +32,14 @@ class ValidationService {
                 // Extract email
                 if (fieldType === 'email' || (answer.email && !extractedData.email)) {
                     extractedData.email = answer.email;
-                }
-                
-                // Extract city (could be short_text, dropdown, or multiple_choice)
-                if (fieldRef?.includes('city') || fieldRef?.includes('город') || 
+                }                // Extract city (could be short_text, dropdown, or multiple_choice)
+                if (fieldRef?.includes('city') || fieldRef?.includes('city') || 
                     (answer.text && !extractedData.city && fieldType === 'short_text')) {
                     extractedData.city = answer.text || answer.choice?.label;
                 }
                 
                 // Extract interest
-                if (fieldRef?.includes('interest') || fieldRef?.includes('интерес') ||
+                if (fieldRef?.includes('interest') || fieldRef?.includes('interest') ||
                     (answer.text && !extractedData.interest && !extractedData.city)) {
                     extractedData.interest = answer.text || answer.choice?.label;
                 }

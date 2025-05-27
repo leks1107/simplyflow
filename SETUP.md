@@ -1,58 +1,58 @@
-# Установка Node.js и запуск приложения
+# Node.js Installation and Application Setup
 
-## Установка Node.js
+## Node.js Installation
 
 ### Windows:
 
-1. **Скачайте Node.js:**
-   - Перейдите на https://nodejs.org/
-   - Скачайте LTS версию (рекомендуемую)
-   - Запустите установщик и следуйте инструкциям
+1. **Download Node.js:**
+   - Go to https://nodejs.org/
+   - Download the LTS version (recommended)
+   - Run the installer and follow the instructions
 
-2. **Проверьте установку:**
+2. **Verify installation:**
    ```powershell
    node --version
    npm --version
    ```
 
-### Альтернативный способ через Chocolatey:
+### Alternative method using Chocolatey:
 ```powershell
-# Установите Chocolatey (если не установлен)
+# Install Chocolatey (if not installed)
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 
-# Установите Node.js
+# Install Node.js
 choco install nodejs
 ```
 
-## Запуск приложения
+## Running the Application
 
-После установки Node.js:
+After installing Node.js:
 
 ```powershell
-# Перейдите в папку проекта
+# Navigate to the project folder
 cd c:\Users\alexe\typeform-sheets-integrator
 
-# Установите зависимости
+# Install dependencies
 npm install
 
-# Создайте .env файл (скопируйте из .env.example и заполните)
+# Create .env file (copy from .env.example and fill in)
 copy .env.example .env
 
-# Запустите приложение
+# Run the application
 npm start
 ```
 
-## Тестирование
+## Testing
 
-### Проверка здоровья сервера:
+### Server health check:
 ```powershell
-# В новом окне PowerShell
+# In a new PowerShell window
 Invoke-RestMethod -Uri "http://localhost:3000/health" -Method GET
 ```
 
-### Тест webhook:
+### Webhook test:
 ```powershell
-# Пример POST запроса для тестирования
+# Example POST request for testing
 $body = @{
     form_response = @{
         answers = @(
