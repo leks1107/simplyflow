@@ -3,42 +3,42 @@ const app = require('./app');
 const logger = require('./utils/logger');
 const db = require('./database/db');
 
+// Render всегда задаёт PORT — обязательно использовать его
 const PORT = process.env.PORT;
-console.log("🟡 PORT FROM ENV:", PORT); // 🔍 Debug-вывод перед запуском сервера
 
-// Test database connection on startup
-async function startServer() {
-    try {
-        // Test database connection
-        await db.testConnection();
-        logger.info('Database connection established successfully');
-
-        // Start the server
-        app.listen(PORT, () => {
-            logger.info(`🚀 SimpFlow Backend is running on port ${PORT}`);
-            logger.info(`📋 Health check: http://localhost:${PORT}/api/health`);
-            logger.info(`🔗 Webhook endpoints: http://localhost:${PORT}/api/trigger/:routeId`);
-            logger.info(`⚙️  Routes API: http://localhost:${PORT}/api/routes`);
-            logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-        });
-    } catch (error) {
-        logger.error('Failed to start server:', error.message);
-        process.exit(1);
-    }
+if (!PORT) {
+  throw new Error("❌ 'PORT' is not defined. This app must be run in a managed environment like Render.");
 }
 
-// Graceful shutdown
+async function startServer() {
+  try {
+    await db.testConnection();
+    logger.info('Database connection established successfully');
+
+    // Обязательно слушаем на 0.0.0.0
+    app.listen(PORT, '0.0.0.0', () => {
+      logger.info(`🚀 SimpFlow Backend is running on port ${PORT}`);
+      logger.info(`📋 Health check: http://localhost:${PORT}/api/health`);
+      logger.info(`🔗 Webhook endpoints: http://localhost:${PORT}/api/trigger/:routeId`);
+      logger.info(`⚙️  Routes API: http://localhost:${PORT}/api/routes`);
+      logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error.message);
+    process.exit(1);
+  }
+}
+
 process.on('SIGTERM', async () => {
-    logger.info('SIGTERM received, shutting down gracefully');
-    await db.closeConnection();
-    process.exit(0);
+  logger.info('SIGTERM received, shutting down gracefully');
+  await db.closeConnection();
+  process.exit(0);
 });
 
 process.on('SIGINT', async () => {
-    logger.info('SIGINT received, shutting down gracefully');
-    await db.closeConnection();
-    process.exit(0);
+  logger.info('SIGINT received, shutting down gracefully');
+  await db.closeConnection();
+  process.exit(0);
 });
 
 startServer();
-//
