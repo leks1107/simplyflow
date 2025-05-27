@@ -20,6 +20,8 @@ export default function RouteDetailPage() {
   const [logs, setLogs] = useState<RouteLog[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<string>('overview'); // Added this line
+  const [logsLoading, setLogsLoading] = useState(false); // Assuming logsLoading might be needed based on context
 
   const loadRoute = useCallback(async () => {
     try {
@@ -37,11 +39,16 @@ export default function RouteDetailPage() {
   }, [routeId])
 
   const loadLogs = useCallback(async () => {
+    if (!routeId) return;
+    setLogsLoading(true); // Added
     try {
       const routeLogs = await getRouteLogs(routeId)
       setLogs(routeLogs)
     } catch (err) {
       console.error('Error loading logs:', err)
+      // Optionally set an error state for logs
+    } finally {
+      setLogsLoading(false); // Added
     }
   }, [routeId])
 
@@ -147,7 +154,7 @@ export default function RouteDetailPage() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)} // Removed 'as any'
               className={`${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
@@ -240,7 +247,7 @@ export default function RouteDetailPage() {
 
       {activeTab === 'logs' && (
         <div>
-          {logsLoading ? (
+          {logsLoading ? ( // Changed from !logs.length
             <div className="flex items-center justify-center py-12">
               <div className="loading-spinner"></div>
             </div>
@@ -248,7 +255,8 @@ export default function RouteDetailPage() {
             <div className="empty-state">
               <div className="mx-auto h-12 w-12 text-gray-400">
                 <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-7.5H21m-3.75 0a3.75 3.75 0 00-3.75-3.75h-7.5a3.75 3.75 0 00-3.75 3.75 M15.75 10.5a3.75 3.75 0 00-3.75-3.75M21 10.5v7.5a3.75 3.75 0 01-3.75 3.75H9.75a3.75 3.75 0 01-3.75-3.75V10.5m12 0V9a3.75 3.75 0 00-3.75-3.75H9.75A3.75 3.75 0 006 9v1.5" />
+                  {/* SVG path for no logs */}
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3-7.5H21m-3.75 0a3.75 3.75 0 00-3.75-3.75h-7.5a3.75 3.75 0 00-3.75 3.75 M15.75 10.5a3.75 3.75 0 00-3.75-3.75M21 10.5v7.5a3.75 3.75 0 01-3.75 3.75H9.75a3.75 3.75 0 01-3.75-3.75V10.5m12 0V9a3.75 3.75 0 00-3.75-3.75H9.75A3.75 3.75 0 006 9v1.5m12 0V9" />
                 </svg>
               </div>
               <h3 className="mt-2 text-sm font-semibold text-gray-900">No logs yet</h3>
@@ -265,14 +273,15 @@ export default function RouteDetailPage() {
                       <div className="flex items-center space-x-3">
                         <Badge variant={log.status === 'success' ? 'success' : 'error'}>
                           {log.status}
-                        </Badge>                        <span className="text-sm text-gray-500">
+                        </Badge>
+                        <span className="text-sm text-gray-500">
                           {formatDate(log.timestamp)}
                         </span>
                         <span className="text-sm text-gray-500">
                           {log.processing_time_ms}ms
                         </span>
                       </div>
-                    </div>                    
+                    </div>
                     {log.error_message && (
                       <div className="mt-3 p-3 bg-red-50 rounded-md">
                         <p className="text-sm text-red-700">{log.error_message}</p>
@@ -300,7 +309,8 @@ export default function RouteDetailPage() {
             </div>
           )}
         </div>
-      )}      {activeTab === 'webhook' && (
+      )}
+      {activeTab === 'webhook' && (
         <WebhookPreview 
           webhookUrl={route.webhook_url} 
           routeId={route.id} 
