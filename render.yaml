@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: simpflow-backend
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    rootDir: backend
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://postgres.ndswscvmvagzbigfkyel:TcEH3W!5.@jmxXP@aws-0-us-west-1.pooler.supabase.com:5432/postgres
