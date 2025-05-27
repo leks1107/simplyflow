@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
-import { Route } from '@/utils/api-simple';
+import { Route } from '@/utils/api';
 import { formatRelativeTime, getSourceIcon, getTargetIcon, getStatusColor } from '@/utils/helpers';
 
 interface RouteCardProps {

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Route, RouteLog, getRoutes, getRouteLogs, deleteRoute } from '@/utils/api-simple'
+import { Route, RouteLog, api } from '@/utils/api'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -22,10 +22,9 @@ export default function RouteDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('overview'); // Added this line
   const [logsLoading, setLogsLoading] = useState(false); // Assuming logsLoading might be needed based on context
-
   const loadRoute = useCallback(async () => {
     try {
-      const routes = await getRoutes()
+      const routes = await api.getRoutes()
       const foundRoute = routes.find(r => r.id === routeId)
       if (!foundRoute) {
         setError('Route not found')
@@ -42,7 +41,7 @@ export default function RouteDetailPage() {
     if (!routeId) return;
     setLogsLoading(true); // Added
     try {
-      const routeLogs = await getRouteLogs(routeId)
+      const routeLogs = await api.getRouteLogs(routeId)
       setLogs(routeLogs)
     } catch (err) {
       console.error('Error loading logs:', err)
@@ -58,12 +57,11 @@ export default function RouteDetailPage() {
         .finally(() => setLoading(false))
     }
   }, [routeId, loadRoute, loadLogs])
-
   const handleDelete = async () => {
     if (!route || !confirm('Are you sure you want to delete this route?')) return
     
     try {
-      await deleteRoute(route.id)
+      await api.deleteRoute(route.id)
       router.push('/')
     } catch (err) {
       alert('Failed to delete route')

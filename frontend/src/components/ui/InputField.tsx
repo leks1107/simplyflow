@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '@/utils/helpers';
 
-interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface BaseInputFieldProps {
   label?: string;
   error?: string;
   helperText?: string;
@@ -10,6 +10,16 @@ interface InputFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   multiline?: boolean;
   rows?: number;
 }
+
+interface SingleLineInputProps extends BaseInputFieldProps, React.InputHTMLAttributes<HTMLInputElement> {
+  multiline?: false;
+}
+
+interface MultiLineInputProps extends BaseInputFieldProps, React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  multiline: true;
+}
+
+type InputFieldProps = SingleLineInputProps | MultiLineInputProps;
 
 const InputField = React.forwardRef<HTMLInputElement | HTMLTextAreaElement, InputFieldProps>(
   ({ className, label, error, helperText, startIcon, endIcon, multiline, rows = 3, id, ...props }, ref) => {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CreateRoutePayload, createRoute, Filter } from '@/utils/api-simple'; // Make sure Filter is imported
+import { CreateRoutePayload, api, Filter } from '@/utils/api'; // Updated to use unified API
 import { Button } from '@/components/ui/Button'
 import { InputField } from '@/components/ui/InputField'
 import { SelectField } from '@/components/ui/SelectField'
@@ -133,7 +133,7 @@ export function RouteWizard() {
         enabled: formData.enabled
       };
 
-      const route = await createRoute(payload);
+      const route = await api.createRoute(payload);
       router.push(`/route/${route.id}`);
     } catch (error) {
       console.error('Failed to create route:', error);

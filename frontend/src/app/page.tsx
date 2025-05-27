@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Route, getRoutes } from '../utils/api-simple'
+import { Route, api } from '../utils/api'
 import RouteCard from '@/components/route/RouteCard'
 import { Button } from '@/components/ui/Button'
 
@@ -13,11 +13,10 @@ export default function DashboardPage() {  const [routes, setRoutes] = useState<
   useEffect(() => {
     loadRoutes()
   }, [])
-
   const loadRoutes = async () => {
     try {
       setLoading(true)
-      const data = await getRoutes()
+      const data = await api.getRoutes()
       setRoutes(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load routes')

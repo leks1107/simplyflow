@@ -3,7 +3,17 @@ export {}; // This line makes this file a module
 
 import axios from 'axios';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// Helper function to get API URL
+export const getApiUrl = (): string => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) {
+    console.warn('⚠️ NEXT_PUBLIC_API_URL not set, falling back to localhost:3000');
+    return 'http://localhost:3000';
+  }
+  return apiUrl;
+};
+
+const BASE_URL = getApiUrl();
 
 // Create axios instance with default config
 const api = axios.create({
