@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CreateRoutePayload, createRoute, Filter } from '@/utils/api-simple'
+import { CreateRoutePayload, createRoute, Filter } from '@/utils/api-simple'; // Make sure Filter is imported
 import { Button } from '@/components/ui/Button'
 import { InputField } from '@/components/ui/InputField'
 import { SelectField } from '@/components/ui/SelectField'
@@ -30,18 +30,14 @@ interface RouteFormData {
     type: string;
     config: any;
   };
-  filters: Array<{
-    field: string;
-    operator: string;
-    value: string;
-  }>;
+  filters: Filter[]; // Changed to use the imported Filter type
   enabled: boolean;
 }
 
 export function RouteWizard() {
-  const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<RouteFormData>({
     name: '',
     description: '',
@@ -54,12 +50,12 @@ export function RouteWizard() {
       config: {
         url: '',
         method: 'POST',
-        headers: {}
+        headers: {} // Keep as object for internal state
       }
     },
-    filters: [],
+    filters: [], // This is now an array of Filter
     enabled: true
-  })
+  });
 
   const updateFormData = (updates: Partial<RouteFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }))
@@ -109,37 +105,43 @@ export function RouteWizard() {
   }
   const handleSubmit = async () => {
     try {
-      setLoading(true)
-      
-      // Convert form data to API format
-      const payload: CreateRoutePayload = {
-        name: formData.name,
-        source: JSON.stringify({
-          type: formData.source.type,
-          config: formData.source.config
-        }),
-        target: JSON.stringify({
-          type: formData.target.type,
-          config: formData.target.config
-        }),
-        filters: formData.filters.map(f => ({
-          field: f.field,
-          op: f.operator,
-          value: f.value
-        })),        credentials: {}, // Add default empty credentials
-        duplicateCheckField: undefined,
-        requiredFields: undefined
+      setLoading(true);
+
+      let targetConfig = { ...formData.target.config };
+      if (formData.target.type === 'http' && typeof targetConfig.headers === 'string') {
+        try {
+          targetConfig.headers = JSON.parse(targetConfig.headers);
+        } catch (e) {
+          console.error("Invalid JSON in target headers, sending as is or empty:", e);
+          // Decide error handling: send empty, alert, or send as string if backend can handle
+          targetConfig.headers = {}; // Default to empty object on parse error
+        }
       }
 
-      const route = await createRoute(payload)
-      router.push(`/route/${route.id}`)
+      const payload: CreateRoutePayload = {
+        name: formData.name,
+        description: formData.description,
+        source: {
+          type: formData.source.type,
+          config: formData.source.config
+        },
+        target: {
+          type: formData.target.type,
+          config: targetConfig // Use potentially parsed headers
+        },
+        filters: formData.filters, // Pass directly as formData.filters is now Filter[]
+        enabled: formData.enabled
+      };
+
+      const route = await createRoute(payload);
+      router.push(`/route/${route.id}`);
     } catch (error) {
-      console.error('Failed to create route:', error)
-      alert('Failed to create route. Please try again.')
+      console.error('Failed to create route:', error);
+      alert('Failed to create route. Please try again.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -222,9 +224,15 @@ export function RouteWizard() {
             <SelectField
               label="Target Type"
               value={formData.target.type}
-              onChange={(value) => updateFormData({ 
-                target: { type: value as any, config: { url: '', method: 'POST', headers: {} } } 
-              })}
+              onChange={(value) => {
+                let newConfig: any = { url: '', method: 'POST', headers: {} };
+                if (value === 'slack' || value === 'discord') {
+                  newConfig = { url: '' };
+                } else if (value === 'email') {
+                  newConfig = { to: '', subject: '' };
+                }
+                updateFormData({ target: { type: value as any, config: newConfig } });
+              }}
               options={TARGET_TYPES}
               required
             />
@@ -234,7 +242,11 @@ export function RouteWizard() {
                 label="Webhook URL"
                 value={formData.target.config.url || ''}
                 onChange={(e) => updateTargetConfig({ url: e.target.value })}
-                placeholder="https://example.com/webhook"
+                placeholder={
+                  formData.target.type === 'slack' ? "Slack Incoming Webhook URL" :
+                  formData.target.type === 'discord' ? "Discord Webhook URL" :
+                  "https://example.com/webhook"
+                }
                 required
               />
             )}
@@ -253,20 +265,16 @@ export function RouteWizard() {
                 />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Custom Headers (Optional)
+                    Custom Headers (Optional, JSON format)
                   </label>
                   <textarea
-                    value={JSON.stringify(formData.target.config.headers || {}, null, 2)}
+                    value={typeof formData.target.config.headers === 'object' ? JSON.stringify(formData.target.config.headers, null, 2) : formData.target.config.headers || ''}
                     onChange={(e) => {
-                      try {
-                        const headers = JSON.parse(e.target.value)
-                        updateTargetConfig({ headers })
-                      } catch {
-                        // Invalid JSON, ignore
-                      }
+                      // Store as string during editing, parse in handleSubmit
+                      updateTargetConfig({ headers: e.target.value });
                     }}
-                    placeholder='{\n  "Authorization": "Bearer token",\n  "Content-Type": "application/json"\n}'
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder={'{\n  "Authorization": "Bearer YOUR_TOKEN",\n  "Content-Type": "application/json"\n}'}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
                     rows={4}
                   />
                 </div>
@@ -304,9 +312,9 @@ export function RouteWizard() {
               </p>
             </div>
             <FiltersEditor
-              filters={formData.filters.map(f => ({ field: f.field, operator: f.operator, value: f.value }))}
-              onChange={(filtersFromEditor) => updateFormData({ 
-                filters: filtersFromEditor.map(f => ({ field: f.field, operator: f.operator, value: f.value }))
+              filters={formData.filters} // Pass formData.filters directly
+              onChange={(filtersFromEditor) => updateFormData({
+                filters: filtersFromEditor // filtersFromEditor is Filter[]
               })}
             />
           </div>
