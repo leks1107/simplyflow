@@ -26,7 +26,7 @@ export default function DocsPage() {
               
               <h3>Creating Your First Route</h3>
               <ol>
-                <li>Click "Create Route" from the dashboard</li>
+                <li>Click &quot;Create Route&quot; from the dashboard</li>
                 <li>Enter a name and description for your route</li>
                 <li>Configure your webhook source (GitHub, Stripe, or generic webhook)</li>
                 <li>Set up your target destination (HTTP endpoint, Slack, Discord, or email)</li>
@@ -91,14 +91,14 @@ export default function DocsPage() {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Discord</h4>
                   <p className="text-sm text-gray-600">
-                    Post messages to Discord channels via webhook URLs.
+                    Post messages to Discord channels via Discord webhooks.
                   </p>
                 </div>
                 
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Email</h4>
                   <p className="text-sm text-gray-600">
-                    Send email notifications with customizable subject templates.
+                    Send email notifications when webhooks are received.
                   </p>
                 </div>
               </div>
@@ -112,53 +112,63 @@ export default function DocsPage() {
             </CardHeader>
             <CardContent className="prose max-w-none">
               <p>
-                Filters allow you to process only specific webhook events based on their data. 
-                You can add multiple filters that work together to match your criteria.
+                Use filters to process only specific webhook events that match your criteria:
               </p>
               
-              <h4>Filter Operators</h4>
+              <h4>Filter Operations</h4>
               <ul>
-                <li><strong>equals:</strong> Exact match</li>
-                <li><strong>contains:</strong> Contains substring</li>
-                <li><strong>starts_with:</strong> Starts with value</li>
-                <li><strong>ends_with:</strong> Ends with value</li>
-                <li><strong>regex:</strong> Regular expression match</li>
+                <li><strong>equals</strong> - Exact match</li>
+                <li><strong>contains</strong> - Partial match</li>
+                <li><strong>starts_with</strong> - Prefix match</li>
+                <li><strong>ends_with</strong> - Suffix match</li>
+                <li><strong>greater_than / less_than</strong> - Numeric comparisons</li>
+                <li><strong>is_empty / is_not_empty</strong> - Check for null/empty values</li>
               </ul>
               
               <h4>Example Filters</h4>
               <ul>
-                <li><code>action equals opened</code> - Only process "opened" events</li>
-                <li><code>repository.name contains "my-repo"</code> - Only repos containing "my-repo"</li>
-                <li><code>sender.login starts_with "bot-"</code> - Only bot users</li>
+                <li>Only process GitHub push events: <code>event_type equals &quot;push&quot;</code></li>
+                <li>Filter by repository: <code>repository.name equals &quot;my-repo&quot;</code></li>
+                <li>Skip draft pull requests: <code>pull_request.draft equals false</code></li>
               </ul>
             </CardContent>
           </Card>
 
-          {/* API */}
+          {/* API Reference */}
           <Card>
             <CardHeader>
-              <CardTitle>Testing Your Webhooks</CardTitle>
+              <CardTitle>API Reference</CardTitle>
             </CardHeader>
             <CardContent className="prose max-w-none">
+              <h4>Webhook Endpoint</h4>
               <p>
-                Once you create a route, you'll get a unique webhook URL. You can test it using cURL:
+                Each route gets a unique webhook URL that you can use to receive webhooks:
               </p>
+              <code className="block bg-gray-100 p-2 rounded">
+                POST https://your-domain.com/api/trigger/{'{route-id}'}
+              </code>
               
-              <pre className="bg-gray-50 p-4 rounded-md">
-{`curl -X POST https://api.simpflow.com/webhook/your-route-id \\
-  -H "Content-Type: application/json" \\
-  -d '{"test": "data", "event": "test_event"}'`}
+              <h4>Response Format</h4>
+              <p>Successful webhook processing returns:</p>
+              <pre className="bg-gray-100 p-4 rounded overflow-x-auto">
+{`{
+  "success": true,
+  "message": "Webhook processed successfully",
+  "route_id": "route-123",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "processing_time_ms": 45
+}`}
               </pre>
               
-              <p>
-                Or using PowerShell:
-              </p>
-              
-              <pre className="bg-gray-50 p-4 rounded-md">
-{`Invoke-RestMethod -Uri "https://api.simpflow.com/webhook/your-route-id" \\
-  -Method POST \\
-  -ContentType "application/json" \\
-  -Body '{"test": "data", "event": "test_event"}'`}
+              <h4>Error Handling</h4>
+              <p>When webhooks fail, you&apos;ll receive:</p>
+              <pre className="bg-gray-100 p-4 rounded overflow-x-auto">
+{`{
+  "success": false,
+  "error": "Target endpoint unreachable",
+  "route_id": "route-123",
+  "timestamp": "2024-01-01T12:00:00Z"
+}`}
               </pre>
             </CardContent>
           </Card>
@@ -171,27 +181,34 @@ export default function DocsPage() {
             <CardContent className="prose max-w-none">
               <h4>Common Issues</h4>
               
-              <h5>Webhook Not Triggering</h5>
+              <h5>Webhook not triggering</h5>
               <ul>
-                <li>Check that your route is enabled</li>
-                <li>Verify the webhook URL is correct</li>
-                <li>Check the logs tab for any error messages</li>
-                <li>Ensure your filters aren't too restrictive</li>
+                <li>Check that the webhook URL is correct</li>
+                <li>Verify the route is enabled</li>
+                <li>Ensure the source service is sending webhooks</li>
+                <li>Check webhook signatures for GitHub/Stripe sources</li>
               </ul>
               
-              <h5>Target Not Receiving Data</h5>
+              <h5>Filters not working</h5>
               <ul>
-                <li>Verify the target URL is accessible</li>
-                <li>Check that required authentication headers are configured</li>
-                <li>Review the route logs for delivery errors</li>
+                <li>Verify filter field paths are correct</li>
+                <li>Check data types match your filter values</li>
+                <li>Use the webhook preview to test your filters</li>
               </ul>
               
-              <h5>Authentication Errors</h5>
+              <h5>Target not receiving data</h5>
               <ul>
-                <li>For GitHub: Ensure your webhook secret matches</li>
-                <li>For Stripe: Verify your endpoint secret is correct</li>
-                <li>For HTTP targets: Check authentication headers</li>
+                <li>Verify target endpoint is accessible</li>
+                <li>Check target endpoint accepts the HTTP method</li>
+                <li>Validate authentication headers if required</li>
+                <li>Review webhook logs for error details</li>
               </ul>
+              
+              <h4>Getting Help</h4>
+              <p>
+                If you need assistance, check the webhook logs in your route details page 
+                for detailed error information and processing history.
+              </p>
             </CardContent>
           </Card>
         </div>

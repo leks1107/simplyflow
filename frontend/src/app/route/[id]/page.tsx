@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Route, RouteLog, getRoutes, getRouteLogs, deleteRoute } from '@/utils/api-simple'
@@ -14,23 +14,15 @@ import { formatDate, getSourceIcon, getTargetIcon } from '@/utils/helpers'
 export default function RouteDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const routeId = params.id as string
+  const routeId = params?.id as string
 
   const [route, setRoute] = useState<Route | null>(null)
   const [logs, setLogs] = useState<RouteLog[]>([])
   const [loading, setLoading] = useState(true)
-  const [logsLoading, setLogsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'logs' | 'webhook'>('overview')
 
-  useEffect(() => {
-    loadRoute()
-    loadLogs()
-  }, [routeId])
-
-  const loadRoute = async () => {
+  const loadRoute = useCallback(async () => {
     try {
-      setLoading(true)
       const routes = await getRoutes()
       const foundRoute = routes.find(r => r.id === routeId)
       if (!foundRoute) {
@@ -39,41 +31,43 @@ export default function RouteDetailPage() {
       }
       setRoute(foundRoute)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load route')
-    } finally {
-      setLoading(false)
+      setError('Failed to load route')
+      console.error('Error loading route:', err)
     }
-  }
+  }, [routeId])
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
-      setLogsLoading(true)
-      const logsData = await getRouteLogs(routeId)
-      setLogs(logsData)
+      const routeLogs = await getRouteLogs(routeId)
+      setLogs(routeLogs)
     } catch (err) {
-      console.error('Failed to load logs:', err)
-    } finally {
-      setLogsLoading(false)
+      console.error('Error loading logs:', err)
     }
-  }
+  }, [routeId])
+
+  useEffect(() => {
+    if (routeId) {
+      Promise.all([loadRoute(), loadLogs()])
+        .finally(() => setLoading(false))
+    }
+  }, [routeId, loadRoute, loadLogs])
 
   const handleDelete = async () => {
-    if (!route || !confirm(`Are you sure you want to delete "${route.name}"?`)) {
-      return
-    }
-
+    if (!route || !confirm('Are you sure you want to delete this route?')) return
+    
     try {
       await deleteRoute(route.id)
       router.push('/')
     } catch (err) {
       alert('Failed to delete route')
+      console.error('Error deleting route:', err)
     }
   }
 
   if (loading) {
     return (
       <div className="container py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center justify-center py-12">
           <div className="loading-spinner"></div>
         </div>
       </div>
@@ -84,18 +78,12 @@ export default function RouteDetailPage() {
     return (
       <div className="container py-8">
         <div className="text-center py-12">
-          <div className="mx-auto h-12 w-12 text-red-400">
-            <svg fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-          </div>
-          <h3 className="mt-2 text-sm font-semibold text-gray-900">Route not found</h3>
-          <p className="mt-1 text-sm text-gray-500">{error}</p>
-          <div className="mt-6">
-            <Link href="/">
-              <Button variant="primary">Back to Dashboard</Button>
-            </Link>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            {error || 'Route not found'}
+          </h3>
+          <Link href="/">
+            <Button variant="primary">Back to Dashboard</Button>
+          </Link>
         </div>
       </div>
     )
