@@ -4,7 +4,6 @@ const logger = require('./utils/logger');
 const db = require('./database/db');
 
 const PORT = process.env.PORT;
-п
 // Test database connection on startup
 async function startServer() {
     try {
