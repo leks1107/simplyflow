@@ -54,6 +54,9 @@ export interface Route {
     filters: Filter[];
     required_fields: string[];
     duplicate_check_field?: string;
+    credentials?: Record<string, any>; // Added this line
+    source_config?: Record<string, any>; // Added for source configuration
+    target_config?: Record<string, any>; // Added for target configuration
   };
 }
 
