@@ -302,10 +302,11 @@ export function RouteWizard() {
               <p className="text-sm text-gray-600 mb-6">
                 Add filters to process only specific webhook events. Leave empty to process all events.
               </p>
-            </div>            <FiltersEditor
-              filters={formData.filters.map(f => ({ field: f.field, op: f.operator, value: f.value }))}
-              onChange={(filters) => updateFormData({ 
-                filters: filters.map(f => ({ field: f.field, operator: f.op, value: f.value }))
+            </div>
+            <FiltersEditor
+              filters={formData.filters.map(f => ({ field: f.field, operator: f.operator, value: f.value }))}
+              onChange={(filtersFromEditor) => updateFormData({ 
+                filters: filtersFromEditor.map(f => ({ field: f.field, operator: f.operator, value: f.value }))
               })}
             />
           </div>
