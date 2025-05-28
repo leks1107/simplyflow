@@ -2,26 +2,27 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CreateRoutePayload, api, Filter } from '@/utils/api'; // Updated to use unified API
+import { CreateRoutePayload, api } from '@/utils/api'
 import { Button } from '@/components/ui/Button'
-import { InputField } from '@/components/ui/InputField'
-import { SelectField } from '@/components/ui/SelectField'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
-import FiltersEditor from '@/components/route/FiltersEditor'
-import { SOURCE_TYPES, TARGET_TYPES } from '@/utils/helpers'
 import { cn } from '@/utils/helpers'
 
+// Import step components
+import Step0_Name from './steps/Step0_Name'
+import Step1_Source from './steps/Step1_Source'
+import Step2_Target from './steps/Step2_Target'
+import Step3_Review from './steps/Step3_Review'
+
 const STEPS = [
-  { id: 'basic', title: 'Basic Information', description: 'Route name and description' },
-  { id: 'source', title: 'Source Configuration', description: 'Configure webhook source' },
-  { id: 'target', title: 'Target Configuration', description: 'Configure destination' },
-  { id: 'filters', title: 'Data Filtering', description: 'Optional data filters' },
-  { id: 'review', title: 'Review & Create', description: 'Review your configuration' },
+  { id: 'name', title: 'Name', description: 'Name and basic settings' },
+  { id: 'source', title: 'Source', description: 'Where data comes from' },
+  { id: 'target', title: 'Target', description: 'Where data is sent' },
+  { id: 'review', title: 'Review', description: 'Review and create' },
 ]
 
 interface RouteFormData {
   name: string;
-  description?: string;
+  enabled: boolean;
   source: {
     type: string;
     config: any;
@@ -30,8 +31,6 @@ interface RouteFormData {
     type: string;
     config: any;
   };
-  filters: Filter[]; // Changed to use the imported Filter type
-  enabled: boolean;
 }
 
 export function RouteWizard() {
